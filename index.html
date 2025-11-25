@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ESP32 Relay Control Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0 10px 40px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      justify-content: space-between;
+    }
+    h1 {
+      margin-top: 30px;
+      font-size: 1.8rem;
+    }
+    .relay-card {
+      display: inline-block;
+      background-color: white;
+      padding: 20px;
+      margin: 15px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 220px;
+      vertical-align: top;
+    }
+    .relay-card h2 {
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+    }
+    .relay-card p {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .relay-card button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      background-color: blue;
+      cursor: pointer;
+      font-size: 16px;
+      width: 90%;
+      transition: opacity 0.3s ease;
+    }
+    .relay-card button:hover {
+      opacity: 0.8;
+    }
+    #allOffBtn {
+      max-width: 300px;
+      width: 90%;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 15px auto;
+      display: block;
+      color: white;
+      background-color: #d32f2f;
+      transition: opacity 0.3s ease;
+    }
+    #allOffBtn:hover {
+      opacity: 0.8;
+    }
+    #connectionStatus {
+      padding: 10px;
+      margin: 10px auto;
+      border-radius: 10px;
+      max-width: 300px;
+      font-weight: bold;
+    }
+    .connected {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .disconnected {
+      background-color: #f44336;
+      color: white;
+    }
+    .relay-container {
+      max-width: 960px;
+      margin: 20px auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    /* Smaller devices */
+    @media (max-width: 700px) {
+      .relay-card {
+        width: 90%;
+        margin: 10px auto;
+        display: block;
+      }
+      body {
+        padding: 0 10px 60px;
+      }
+    }
+    footer {
+      font-size: 0.9rem;
+      color: #666;
+      padding: 10px 0;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ESP32 Relay Control Dashboard</h1>
+  
+  <div id="connectionStatus" class="disconnected">Disconnected from MQTT</div>
+
+  <div id="dashboard">
+    <div class="relay-container">
+      <div class="relay-card">
+        <h2>Relay 1</h2>
+        <p>Status: <span id="status1">OFF</span></p>
+        <button id="btn1">Toggle</button>
+      </div>
+
+      <div class="relay-card">
+        <h2>Relay 2</h2>
+        <p>Status: <span id="status2">OFF</span></p>
+        <button id="btn3">Toggle</button>
+      </div>
+
+      <div class="relay-card">
+        <h2>Relay 3</h2>
+        <p>Status: <span id="status3">OFF</span></p>
+        <button id="btn3">Toggle</button>
+      </div>
+
+      <div class="relay-card">
+        <h2>Relay 4</h2>
+        <p>Status: <span id="status4">OFF</span></p>
+        <button id="btn4">Toggle</button>
+      </div>
+    </div>
+
+    <button id="allOffBtn">All OFF</button>
+  </div>
+
+  <footer>
+    ESP32 MQTT Relay Control
+  </footer>
+
+  <script>
+    // MQTT configuration
+    const mqttConfig = {
+      host: "2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud",
+      port: 8884,
+      username: "nizar",
+      password: "Niz774121",
+      clientId: "webClient_" + Math.random().toString(16).substr(2, 8)
+    };
+
+    let client;
+    const controlTopic = "esp32/relays/control";
+    const statusTopic = "esp32/relays/status";
+
+    // Relay states
+    const relayStates = {
+      1: false,
+      2: false,
+      3: false,
+      4: false
+    };
+
+    function connectMQTT() {
+      client = new Paho.MQTT.Client(
+        mqttConfig.host,
+        mqttConfig.port,
+        mqttConfig.clientId
+      );
+
+      client.onConnectionLost = onConnectionLost;
+      client.onMessageArrived = onMessageArrived;
+
+      const options = {
+        useSSL: true,
+        userName: mqttConfig.username,
+        password: mqttConfig.password,
+        onSuccess: onConnect,
+        onFailure: onFailure
+      };
+
+      client.connect(options);
+    }
+
+    function onConnect() {
+      console.log("Connected to MQTT broker");
+      document.getElementById("connectionStatus").textContent = "Connected to MQTT";
+      document.getElementById("connectionStatus").className = "connected";
+      
+      // Subscribe to status topic
+      client.subscribe(statusTopic);
+      console.log("Subscribed to: " + statusTopic);
+    }
+
+    function onFailure(message) {
+      console.log("Connection failed: " + message.errorMessage);
+      document.getElementById("connectionStatus").textContent = "Connection failed - retrying...";
+      document.getElementById("connectionStatus").className = "disconnected";
+      
+      // Retry connection after 5 seconds
+      setTimeout(connectMQTT, 5000);
+    }
+
+    function onConnectionLost(responseObject) {
+      if (responseObject.errorCode !== 0) {
+        console.log("Connection lost: " + responseObject.errorMessage);
+        document.getElementById("connectionStatus").textContent = "Disconnected from MQTT";
+        document.getElementById("connectionStatus").className = "disconnected";
+      }
+    }
+
+    function onMessageArrived(message) {
+      console.log("Message received: " + message.payloadString);
+      
+      try {
+        const data = JSON.parse(message.payloadString);
+        if (data.relay && data.state !== undefined) {
+          updateRelayUI(data.relay, data.state);
+        }
+      } catch (e) {
+        console.error("Error parsing message: ", e);
+      }
+    }
+
+    function updateRelayUI(relayNum, state) {
+      relayStates[relayNum] = state;
+      const statusElement = document.getElementById(`status${relayNum}`);
+      const buttonElement = document.getElementById(`btn${relayNum}`);
+      
+      if (statusElement) {
+        statusElement.textContent = state ? "ON" : "OFF";
+      }
+      if (buttonElement) {
+        buttonElement.style.backgroundColor = state ? "green" : "blue";
+      }
+    }
+
+    function toggleRelay(relayNum) {
+      const newState = !relayStates[relayNum];
+      const message = {
+        relay: relayNum,
+        state: newState
+      };
+      
+      const messageJSON = JSON.stringify(message);
+      const mqttMessage = new Paho.MQTT.Message(messageJSON);
+      mqttMessage.destinationName = controlTopic;
+      
+      client.send(mqttMessage);
+      console.log("Sent: " + messageJSON);
+    }
+
+    function allOff() {
+      for (let i = 1; i <= 4; i++) {
+        const message = {
+          relay: i,
+          state: false
+        };
+        
+        const messageJSON = JSON.stringify(message);
+        const mqttMessage = new Paho.MQTT.Message(messageJSON);
+        mqttMessage.destinationName = controlTopic;
+        
+        client.send(mqttMessage);
+      }
+      console.log("Sent All OFF command");
+    }
+
+    // Initialize when page loads
+    document.addEventListener("DOMContentLoaded", function() {
+      // Set up button event listeners
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`btn${i}`).addEventListener("click", function() {
+          toggleRelay(i);
+        });
+      }
+      
+      document.getElementById("allOffBtn").addEventListener("click", allOff);
+      
+      // Connect to MQTT
+      connectMQTT();
+    });
+  </script>
+</body>
+</html>
