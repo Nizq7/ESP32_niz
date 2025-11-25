@@ -117,10 +117,12 @@
       padding: 10px;
       background-color: #f5f5f5;
       border-radius: 5px;
-      max-height: 100px;
+      max-height: 150px;
       overflow-y: auto;
       text-align: left;
       font-size: 12px;
+      width: 300px;
+      max-width: 90%;
     }
   </style>
 </head>
@@ -153,13 +155,16 @@
     MQTT Relay Control System
   </footer>
 
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
-    // MQTT configuration - استخدام HiveMQ Cloud
+    // MQTT configuration
     const mqttConfig = {
-      broker: '2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud',
+      protocol: 'wss',
+      host: '2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud',
       port: 8884,
       username: 'nizar',
       password: 'Niz774121',
+      clientId: 'webclient_' + Math.random().toString(16).substr(2, 8),
       topics: {
         control: 'esp32/relay/control',
         status: 'esp32/relay/status'
@@ -168,7 +173,6 @@
 
     let mqttClient = null;
     let isConnected = false;
-    let reconnectInterval = null;
 
     // DOM elements
     const connectionStatus = document.getElementById('connectionStatus');
@@ -213,14 +217,14 @@
       toggleBtn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
       toggleBtn.style.backgroundColor = isOn ? '#f44336' : '#4CAF50';
       
-      addLog(`Relay status updated: ${status}`);
+      addLog(`Relay status: ${status}`);
     }
 
     // إرسال أمر للريلاي
     function sendCommand(command) {
       if (!isConnected || !mqttClient) {
         addLog('Error: Not connected to MQTT broker');
-        alert('Not connected to MQTT broker. Please check connection.');
+        alert('Not connected to MQTT broker');
         return;
       }
 
@@ -229,111 +233,78 @@
         addLog(`Command sent: ${command}`);
       } catch (error) {
         addLog(`Error sending command: ${error}`);
-        alert('Error sending command: ' + error);
-      }
-    }
-
-    // محاولة إعادة الاتصال
-    function reconnect() {
-      if (!isConnected) {
-        addLog('Attempting to reconnect...');
-        connectMQTT();
+        alert('Error sending command');
       }
     }
 
     // الاتصال بـ MQTT
     function connectMQTT() {
       try {
+        addLog('Connecting to MQTT broker...');
         updateConnectionStatus(false, 'Connecting...');
         connectionStatus.className = 'connection-status connecting';
-        
-        // إنشاء client ID فريد
-        const clientId = 'webclient_' + Math.random().toString(16).substr(2, 8);
-        
-        mqttClient = new Paho.MQTT.Client(
-          mqttConfig.broker,
-          mqttConfig.port,
-          clientId
-        );
 
-        // تعيين معالجات الأحداث
-        mqttClient.onConnectionLost = onConnectionLost;
-        mqttClient.onMessageArrived = onMessageArrived;
-
-        // خيارات الاتصال
+        const url = `${mqttConfig.protocol}://${mqttConfig.host}:${mqttConfig.port}/mqtt`;
+        
         const options = {
-          timeout: 3,
-          keepAliveInterval: 60,
-          cleanSession: true,
-          useSSL: true,
-          userName: mqttConfig.username,
+          username: mqttConfig.username,
           password: mqttConfig.password,
-          onSuccess: onConnect,
-          onFailure: onConnectFailure
+          clientId: mqttConfig.clientId,
+          clean: true,
+          reconnectPeriod: 5000,
+          connectTimeout: 5000
         };
 
-        addLog(`Connecting to MQTT broker: ${mqttConfig.broker}`);
-        mqttClient.connect(options);
+        addLog(`Connecting to: ${url}`);
+
+        mqttClient = mqtt.connect(url, options);
+
+        mqttClient.on('connect', () => {
+          addLog('Successfully connected to MQTT broker');
+          updateConnectionStatus(true, 'Connected to HiveMQ');
+          
+          // الاشتراك في موضوع الحالة
+          mqttClient.subscribe(mqttConfig.topics.status, (err) => {
+            if (err) {
+              addLog(`Subscription error: ${err}`);
+            } else {
+              addLog(`Subscribed to: ${mqttConfig.topics.status}`);
+            }
+          });
+        });
+
+        mqttClient.on('message', (topic, message) => {
+          const payload = message.toString();
+          addLog(`Message received: ${topic} = ${payload}`);
+          
+          if (topic === mqttConfig.topics.status) {
+            updateRelayStatus(payload);
+          }
+        });
+
+        mqttClient.on('error', (error) => {
+          addLog(`Connection error: ${error}`);
+          updateConnectionStatus(false, 'Connection error');
+        });
+
+        mqttClient.on('close', () => {
+          addLog('Connection closed');
+          updateConnectionStatus(false, 'Connection closed');
+        });
+
+        mqttClient.on('offline', () => {
+          addLog('Client offline');
+          updateConnectionStatus(false, 'Offline');
+        });
+
+        mqttClient.on('reconnect', () => {
+          addLog('Attempting to reconnect...');
+          updateConnectionStatus(false, 'Reconnecting...');
+        });
 
       } catch (error) {
-        addLog(`Connection error: ${error}`);
+        addLog(`Connection setup error: ${error}`);
         updateConnectionStatus(false, 'Connection failed');
-      }
-    }
-
-    // عند الاتصال بنجاح
-    function onConnect() {
-      addLog('Successfully connected to MQTT broker');
-      updateConnectionStatus(true, 'Connected to HiveMQ');
-      
-      // الاشتراك في موضوع الحالة
-      mqttClient.subscribe(mqttConfig.topics.status, {
-        qos: 0,
-        onSuccess: function() {
-          addLog(`Subscribed to topic: ${mqttConfig.topics.status}`);
-        },
-        onFailure: function(error) {
-          addLog(`Subscription failed: ${error.errorMessage}`);
-        }
-      });
-
-      // إيقاف محاولات إعادة الاتصال المتكررة
-      if (reconnectInterval) {
-        clearInterval(reconnectInterval);
-        reconnectInterval = null;
-      }
-    }
-
-    // عند فشل الاتصال
-    function onConnectFailure(error) {
-      addLog(`Connection failed: ${error.errorMessage}`);
-      updateConnectionStatus(false, 'Connection failed');
-      
-      // محاولة إعادة الاتصال بعد 5 ثواني
-      if (!reconnectInterval) {
-        reconnectInterval = setInterval(reconnect, 5000);
-      }
-    }
-
-    // عند فقدان الاتصال
-    function onConnectionLost(response) {
-      if (response.errorCode !== 0) {
-        addLog(`Connection lost: ${response.errorMessage}`);
-        updateConnectionStatus(false, 'Connection lost');
-        
-        // محاولة إعادة الاتصال
-        if (!reconnectInterval) {
-          reconnectInterval = setInterval(reconnect, 5000);
-        }
-      }
-    }
-
-    // عند استقبال رسالة
-    function onMessageArrived(message) {
-      addLog(`Message received: ${message.destinationName} = ${message.payloadString}`);
-      
-      if (message.destinationName === mqttConfig.topics.status) {
-        updateRelayStatus(message.payloadString);
       }
     }
 
@@ -350,6 +321,13 @@
       offBtn.addEventListener('click', () => {
         sendCommand('OFF');
       });
+
+      // إعادة الاتصال يدوياً
+      connectionStatus.addEventListener('click', () => {
+        if (!isConnected) {
+          connectMQTT();
+        }
+      });
     }
 
     // التهيئة عند تحميل الصفحة
@@ -359,17 +337,13 @@
       connectMQTT();
     });
 
-    // إعادة الاتصال عندما تعود الصفحة للظهور
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && !isConnected) {
-        addLog('Page became visible, reconnecting...');
-        connectMQTT();
+    // تنظيف عند إغلاق الصفحة
+    window.addEventListener('beforeunload', () => {
+      if (mqttClient) {
+        mqttClient.end();
       }
     });
 
   </script>
-
-  <!-- MQTT Paho Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
 </body>
 </html>
