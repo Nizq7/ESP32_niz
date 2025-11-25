@@ -41,6 +41,7 @@
       padding: 10px;
       border-radius: 8px;
       background-color: #f5f5f5;
+      font-weight: bold;
     }
     .status.on {
       background-color: #4CAF50;
@@ -60,22 +61,23 @@
       font-size: 16px;
       margin: 5px;
       transition: all 0.3s ease;
+      width: 100%;
     }
     button:hover {
       opacity: 0.8;
-      transform: translateY(-2px);
     }
-    button:active {
-      transform: translateY(0);
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
     }
     #toggleBtn {
-      width: 100%;
       font-size: 18px;
       padding: 15px;
+      margin-bottom: 10px;
     }
     .connection-status {
       margin: 10px 0;
-      padding: 8px;
+      padding: 10px;
       border-radius: 5px;
       font-weight: bold;
     }
@@ -87,10 +89,38 @@
       background-color: #f44336;
       color: white;
     }
+    .connecting {
+      background-color: #FF9800;
+      color: white;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .controls button {
+      flex: 1;
+    }
+    #onBtn {
+      background-color: #4CAF50;
+    }
+    #offBtn {
+      background-color: #f44336;
+    }
     footer {
       margin-top: 40px;
       font-size: 0.9rem;
       color: #666;
+    }
+    .log {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      max-height: 100px;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 12px;
     }
   </style>
 </head>
@@ -101,16 +131,22 @@
   <div class="relay-card">
     <h2>Relay Control</h2>
     
-    <div class="connection-status" id="connectionStatus">Disconnected</div>
+    <div class="connection-status disconnected" id="connectionStatus">
+      Disconnected
+    </div>
     
     <div class="status off" id="relayStatus">OFF</div>
     
-    <button id="toggleBtn">Toggle Relay</button>
+    <button id="toggleBtn" disabled>Toggle Relay</button>
     
-    <div style="margin-top: 15px;">
-      <button id="onBtn" style="background-color: #4CAF50;">Turn ON</button>
-      <button id="offBtn" style="background-color: #f44336;">Turn OFF</button>
+    <div class="controls">
+      <button id="onBtn" disabled>ON</button>
+      <button id="offBtn" disabled>OFF</button>
     </div>
+  </div>
+
+  <div class="log" id="messageLog">
+    Connection log will appear here...
   </div>
 
   <footer>
@@ -118,9 +154,10 @@
   </footer>
 
   <script>
-    // MQTT configuration
+    // MQTT configuration - استخدام HiveMQ Cloud
     const mqttConfig = {
-      broker: 'wss://2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud:8884/mqtt',
+      broker: '2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud',
+      port: 8884,
       username: 'nizar',
       password: 'Niz774121',
       topics: {
@@ -131,6 +168,7 @@
 
     let mqttClient = null;
     let isConnected = false;
+    let reconnectInterval = null;
 
     // DOM elements
     const connectionStatus = document.getElementById('connectionStatus');
@@ -138,135 +176,200 @@
     const toggleBtn = document.getElementById('toggleBtn');
     const onBtn = document.getElementById('onBtn');
     const offBtn = document.getElementById('offBtn');
+    const messageLog = document.getElementById('messageLog');
 
-    // Initialize MQTT connection
-    function initMQTT() {
-      try {
-        mqttClient = new Paho.MQTT.Client(
-          mqttConfig.broker,
-          "webClient_" + Math.random().toString(16).substr(2, 8)
-        );
+    // إضافة رسالة للـ log
+    function addLog(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      messageLog.innerHTML = `[${timestamp}] ${message}<br>` + messageLog.innerHTML;
+      console.log(message);
+    }
 
-        const options = {
-          userName: mqttConfig.username,
-          password: mqttConfig.password,
-          onSuccess: onConnect,
-          onFailure: onFailure,
-          useSSL: true
-        };
-
-        mqttClient.onConnectionLost = onConnectionLost;
-        mqttClient.onMessageArrived = onMessageArrived;
-
-        mqttClient.connect(options);
-        
-      } catch (error) {
-        console.error('MQTT initialization error:', error);
-        updateConnectionStatus(false);
+    // تحديث حالة الاتصال
+    function updateConnectionStatus(status, message = '') {
+      isConnected = status;
+      
+      if (status) {
+        connectionStatus.textContent = 'Connected' + (message ? ' - ' + message : '');
+        connectionStatus.className = 'connection-status connected';
+        toggleBtn.disabled = false;
+        onBtn.disabled = false;
+        offBtn.disabled = false;
+      } else {
+        connectionStatus.textContent = 'Disconnected' + (message ? ' - ' + message : '');
+        connectionStatus.className = 'connection-status disconnected';
+        toggleBtn.disabled = true;
+        onBtn.disabled = true;
+        offBtn.disabled = true;
       }
     }
 
+    // تحديث حالة الريلاي
+    function updateRelayStatus(status) {
+      const isOn = status === 'ON';
+      relayStatus.textContent = status;
+      relayStatus.className = `status ${isOn ? 'on' : 'off'}`;
+      
+      toggleBtn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
+      toggleBtn.style.backgroundColor = isOn ? '#f44336' : '#4CAF50';
+      
+      addLog(`Relay status updated: ${status}`);
+    }
+
+    // إرسال أمر للريلاي
+    function sendCommand(command) {
+      if (!isConnected || !mqttClient) {
+        addLog('Error: Not connected to MQTT broker');
+        alert('Not connected to MQTT broker. Please check connection.');
+        return;
+      }
+
+      try {
+        mqttClient.publish(mqttConfig.topics.control, command);
+        addLog(`Command sent: ${command}`);
+      } catch (error) {
+        addLog(`Error sending command: ${error}`);
+        alert('Error sending command: ' + error);
+      }
+    }
+
+    // محاولة إعادة الاتصال
+    function reconnect() {
+      if (!isConnected) {
+        addLog('Attempting to reconnect...');
+        connectMQTT();
+      }
+    }
+
+    // الاتصال بـ MQTT
+    function connectMQTT() {
+      try {
+        updateConnectionStatus(false, 'Connecting...');
+        connectionStatus.className = 'connection-status connecting';
+        
+        // إنشاء client ID فريد
+        const clientId = 'webclient_' + Math.random().toString(16).substr(2, 8);
+        
+        mqttClient = new Paho.MQTT.Client(
+          mqttConfig.broker,
+          mqttConfig.port,
+          clientId
+        );
+
+        // تعيين معالجات الأحداث
+        mqttClient.onConnectionLost = onConnectionLost;
+        mqttClient.onMessageArrived = onMessageArrived;
+
+        // خيارات الاتصال
+        const options = {
+          timeout: 3,
+          keepAliveInterval: 60,
+          cleanSession: true,
+          useSSL: true,
+          userName: mqttConfig.username,
+          password: mqttConfig.password,
+          onSuccess: onConnect,
+          onFailure: onConnectFailure
+        };
+
+        addLog(`Connecting to MQTT broker: ${mqttConfig.broker}`);
+        mqttClient.connect(options);
+
+      } catch (error) {
+        addLog(`Connection error: ${error}`);
+        updateConnectionStatus(false, 'Connection failed');
+      }
+    }
+
+    // عند الاتصال بنجاح
     function onConnect() {
-      console.log('Connected to MQTT broker');
-      isConnected = true;
-      updateConnectionStatus(true);
+      addLog('Successfully connected to MQTT broker');
+      updateConnectionStatus(true, 'Connected to HiveMQ');
       
-      // Subscribe to status topic
-      mqttClient.subscribe(mqttConfig.topics.status);
-      console.log('Subscribed to: ' + mqttConfig.topics.status);
+      // الاشتراك في موضوع الحالة
+      mqttClient.subscribe(mqttConfig.topics.status, {
+        qos: 0,
+        onSuccess: function() {
+          addLog(`Subscribed to topic: ${mqttConfig.topics.status}`);
+        },
+        onFailure: function(error) {
+          addLog(`Subscription failed: ${error.errorMessage}`);
+        }
+      });
+
+      // إيقاف محاولات إعادة الاتصال المتكررة
+      if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+        reconnectInterval = null;
+      }
     }
 
-    function onFailure(error) {
-      console.error('Connection failed:', error);
-      isConnected = false;
-      updateConnectionStatus(false);
+    // عند فشل الاتصال
+    function onConnectFailure(error) {
+      addLog(`Connection failed: ${error.errorMessage}`);
+      updateConnectionStatus(false, 'Connection failed');
       
-      // Try to reconnect after 5 seconds
-      setTimeout(initMQTT, 5000);
+      // محاولة إعادة الاتصال بعد 5 ثواني
+      if (!reconnectInterval) {
+        reconnectInterval = setInterval(reconnect, 5000);
+      }
     }
 
+    // عند فقدان الاتصال
     function onConnectionLost(response) {
-      console.log('Connection lost:', response);
-      isConnected = false;
-      updateConnectionStatus(false);
-      
-      // Try to reconnect
-      setTimeout(initMQTT, 3000);
+      if (response.errorCode !== 0) {
+        addLog(`Connection lost: ${response.errorMessage}`);
+        updateConnectionStatus(false, 'Connection lost');
+        
+        // محاولة إعادة الاتصال
+        if (!reconnectInterval) {
+          reconnectInterval = setInterval(reconnect, 5000);
+        }
+      }
     }
 
+    // عند استقبال رسالة
     function onMessageArrived(message) {
-      console.log('Message received:', message.destinationName, message.payloadString);
+      addLog(`Message received: ${message.destinationName} = ${message.payloadString}`);
       
       if (message.destinationName === mqttConfig.topics.status) {
         updateRelayStatus(message.payloadString);
       }
     }
 
-    function updateConnectionStatus(connected) {
-      isConnected = connected;
-      if (connected) {
-        connectionStatus.textContent = 'Connected';
-        connectionStatus.className = 'connection-status connected';
-      } else {
-        connectionStatus.textContent = 'Disconnected';
-        connectionStatus.className = 'connection-status disconnected';
-      }
+    // إعداد معالجات الأحداث
+    function setupEventListeners() {
+      toggleBtn.addEventListener('click', () => {
+        sendCommand('TOGGLE');
+      });
+
+      onBtn.addEventListener('click', () => {
+        sendCommand('ON');
+      });
+
+      offBtn.addEventListener('click', () => {
+        sendCommand('OFF');
+      });
     }
 
-    function updateRelayStatus(status) {
-      const isOn = status === 'ON';
-      relayStatus.textContent = status;
-      relayStatus.className = `status ${isOn ? 'on' : 'off'}`;
-      
-      // Update button text
-      toggleBtn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
-      toggleBtn.style.backgroundColor = isOn ? '#f44336' : '#4CAF50';
-    }
-
-    function sendCommand(command) {
-      if (!isConnected || !mqttClient) {
-        alert('Not connected to MQTT broker');
-        return;
-      }
-
-      try {
-        const message = new Paho.MQTT.Message(command);
-        message.destinationName = mqttConfig.topics.control;
-        mqttClient.send(message);
-        console.log('Command sent:', command);
-      } catch (error) {
-        console.error('Error sending command:', error);
-        alert('Error sending command');
-      }
-    }
-
-    // Event listeners
-    toggleBtn.addEventListener('click', () => {
-      sendCommand('TOGGLE');
-    });
-
-    onBtn.addEventListener('click', () => {
-      sendCommand('ON');
-    });
-
-    offBtn.addEventListener('click', () => {
-      sendCommand('OFF');
-    });
-
-    // Initialize when page loads
+    // التهيئة عند تحميل الصفحة
     window.addEventListener('load', () => {
-      initMQTT();
+      addLog('Page loaded, initializing MQTT connection...');
+      setupEventListeners();
+      connectMQTT();
     });
 
-    // Handle page visibility change
+    // إعادة الاتصال عندما تعود الصفحة للظهور
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && !isConnected) {
-        initMQTT();
+        addLog('Page became visible, reconnecting...');
+        connectMQTT();
       }
     });
+
   </script>
 
-  <!-- MQTT Library -->
+  <!-- MQTT Paho Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
 </body>
 </html>
