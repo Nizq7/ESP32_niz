@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ESP32 Relay Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-top: 30px;
+      font-size: 1.8rem;
+      color: #333;
+    }
+    .relay-card {
+      background-color: white;
+      padding: 30px;
+      margin: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 300px;
+      max-width: 90%;
+    }
+    .relay-card h2 {
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      color: #333;
+    }
+    .status {
+      font-size: 1.2rem;
+      margin: 20px 0;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    .status.on {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .status.off {
+      background-color: #f44336;
+      color: white;
+    }
+    button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      background-color: #2196F3;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    button:hover {
+      opacity: 0.8;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    #toggleBtn {
+      font-size: 18px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    .connection-status {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .connected {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .disconnected {
+      background-color: #f44336;
+      color: white;
+    }
+    .connecting {
+      background-color: #FF9800;
+      color: white;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .controls button {
+      flex: 1;
+    }
+    #onBtn {
+      background-color: #4CAF50;
+    }
+    #offBtn {
+      background-color: #f44336;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .log {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 12px;
+      width: 300px;
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ESP32 Relay Control</h1>
+
+  <div class="relay-card">
+    <h2>Relay Control</h2>
+    
+    <div class="connection-status disconnected" id="connectionStatus">
+      Disconnected
+    </div>
+    
+    <div class="status off" id="relayStatus">OFF</div>
+    
+    <button id="toggleBtn" disabled>Toggle Relay</button>
+    
+    <div class="controls">
+      <button id="onBtn" disabled>ON</button>
+      <button id="offBtn" disabled>OFF</button>
+    </div>
+  </div>
+
+  <div class="log" id="messageLog">
+    Connection log will appear here...
+  </div>
+
+  <footer>
+    MQTT Relay Control System
+  </footer>
+
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    // MQTT configuration
+    const mqttConfig = {
+      protocol: 'wss',
+      host: '2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud',
+      port: 8884,
+      username: 'nizar',
+      password: 'Niz774121',
+      clientId: 'webclient_' + Math.random().toString(16).substr(2, 8),
+      topics: {
+        control: 'esp32/relay/control',
+        status: 'esp32/relay/status'
+      }
+    };
+
+    let mqttClient = null;
+    let isConnected = false;
+
+    // DOM elements
+    const connectionStatus = document.getElementById('connectionStatus');
+    const relayStatus = document.getElementById('relayStatus');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const onBtn = document.getElementById('onBtn');
+    const offBtn = document.getElementById('offBtn');
+    const messageLog = document.getElementById('messageLog');
+
+    // إضافة رسالة للـ log
+    function addLog(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      messageLog.innerHTML = `[${timestamp}] ${message}<br>` + messageLog.innerHTML;
+      console.log(message);
+    }
+
+    // تحديث حالة الاتصال
+    function updateConnectionStatus(status, message = '') {
+      isConnected = status;
+      
+      if (status) {
+        connectionStatus.textContent = 'Connected' + (message ? ' - ' + message : '');
+        connectionStatus.className = 'connection-status connected';
+        toggleBtn.disabled = false;
+        onBtn.disabled = false;
+        offBtn.disabled = false;
+      } else {
+        connectionStatus.textContent = 'Disconnected' + (message ? ' - ' + message : '');
+        connectionStatus.className = 'connection-status disconnected';
+        toggleBtn.disabled = true;
+        onBtn.disabled = true;
+        offBtn.disabled = true;
+      }
+    }
+
+    // تحديث حالة الريلاي
+    function updateRelayStatus(status) {
+      const isOn = status === 'ON';
+      relayStatus.textContent = status;
+      relayStatus.className = `status ${isOn ? 'on' : 'off'}`;
+      
+      toggleBtn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
+      toggleBtn.style.backgroundColor = isOn ? '#f44336' : '#4CAF50';
+      
+      addLog(`Relay status: ${status}`);
+    }
+
+    // إرسال أمر للريلاي
+    function sendCommand(command) {
+      if (!isConnected || !mqttClient) {
+        addLog('Error: Not connected to MQTT broker');
+        alert('Not connected to MQTT broker');
+        return;
+      }
+
+      try {
+        mqttClient.publish(mqttConfig.topics.control, command);
+        addLog(`Command sent: ${command}`);
+      } catch (error) {
+        addLog(`Error sending command: ${error}`);
+        alert('Error sending command');
+      }
+    }
+
+    // الاتصال بـ MQTT
+    function connectMQTT() {
+      try {
+        addLog('Connecting to MQTT broker...');
+        updateConnectionStatus(false, 'Connecting...');
+        connectionStatus.className = 'connection-status connecting';
+
+        const url = `${mqttConfig.protocol}://${mqttConfig.host}:${mqttConfig.port}/mqtt`;
+        
+        const options = {
+          username: mqttConfig.username,
+          password: mqttConfig.password,
+          clientId: mqttConfig.clientId,
+          clean: true,
+          reconnectPeriod: 5000,
+          connectTimeout: 5000
+        };
+
+        addLog(`Connecting to: ${url}`);
+
+        mqttClient = mqtt.connect(url, options);
+
+        mqttClient.on('connect', () => {
+          addLog('Successfully connected to MQTT broker');
+          updateConnectionStatus(true, 'Connected to HiveMQ');
+          
+          // الاشتراك في موضوع الحالة
+          mqttClient.subscribe(mqttConfig.topics.status, (err) => {
+            if (err) {
+              addLog(`Subscription error: ${err}`);
+            } else {
+              addLog(`Subscribed to: ${mqttConfig.topics.status}`);
+            }
+          });
+        });
+
+        mqttClient.on('message', (topic, message) => {
+          const payload = message.toString();
+          addLog(`Message received: ${topic} = ${payload}`);
+          
+          if (topic === mqttConfig.topics.status) {
+            updateRelayStatus(payload);
+          }
+        });
+
+        mqttClient.on('error', (error) => {
+          addLog(`Connection error: ${error}`);
+          updateConnectionStatus(false, 'Connection error');
+        });
+
+        mqttClient.on('close', () => {
+          addLog('Connection closed');
+          updateConnectionStatus(false, 'Connection closed');
+        });
+
+        mqttClient.on('offline', () => {
+          addLog('Client offline');
+          updateConnectionStatus(false, 'Offline');
+        });
+
+        mqttClient.on('reconnect', () => {
+          addLog('Attempting to reconnect...');
+          updateConnectionStatus(false, 'Reconnecting...');
+        });
+
+      } catch (error) {
+        addLog(`Connection setup error: ${error}`);
+        updateConnectionStatus(false, 'Connection failed');
+      }
+    }
+
+    // إعداد معالجات الأحداث
+    function setupEventListeners() {
+      toggleBtn.addEventListener('click', () => {
+        sendCommand('TOGGLE');
+      });
+
+      onBtn.addEventListener('click', () => {
+        sendCommand('ON');
+      });
+
+      offBtn.addEventListener('click', () => {
+        sendCommand('OFF');
+      });
+
+      // إعادة الاتصال يدوياً
+      connectionStatus.addEventListener('click', () => {
+        if (!isConnected) {
+          connectMQTT();
+        }
+      });
+    }
+
+    // التهيئة عند تحميل الصفحة
+    window.addEventListener('load', () => {
+      addLog('Page loaded, initializing MQTT connection...');
+      setupEventListeners();
+      connectMQTT();
+    });
+
+    // تنظيف عند إغلاق الصفحة
+    window.addEventListener('beforeunload', () => {
+      if (mqttClient) {
+        mqttClient.end();
+      }
+    });
+
+  </script>
+</body>
+</html>
