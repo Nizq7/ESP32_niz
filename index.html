@@ -21,16 +21,10 @@
       font-size: 1.8rem;
       color: #333;
     }
-    .relays-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin: 20px 0;
-    }
     .relay-card {
       background-color: white;
       padding: 20px;
+      margin: 15px;
       border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       width: 280px;
@@ -42,9 +36,9 @@
       color: #333;
     }
     .status {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       margin: 15px 0;
-      padding: 10px;
+      padding: 8px;
       border-radius: 8px;
       background-color: #f5f5f5;
       font-weight: bold;
@@ -58,16 +52,16 @@
       color: white;
     }
     button {
-      padding: 10px 20px;
+      padding: 10px 15px;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       color: white;
       background-color: #2196F3;
       cursor: pointer;
       font-size: 14px;
-      margin: 5px;
+      margin: 3px;
       transition: all 0.3s ease;
-      width: 100%;
+      flex: 1;
     }
     button:hover {
       opacity: 0.8;
@@ -75,11 +69,6 @@
     button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
-    }
-    .toggle-btn {
-      font-size: 16px;
-      padding: 12px;
-      margin-bottom: 10px;
     }
     .connection-status {
       margin: 10px 0;
@@ -103,7 +92,7 @@
     }
     .controls {
       display: flex;
-      gap: 10px;
+      gap: 5px;
       margin-top: 10px;
     }
     .controls button {
@@ -114,6 +103,17 @@
     }
     .off-btn {
       background-color: #f44336;
+    }
+    .toggle-btn {
+      background-color: #2196F3;
+    }
+    .all-controls {
+      margin: 20px 0;
+    }
+    .all-controls button {
+      padding: 12px 20px;
+      margin: 5px;
+      font-size: 16px;
     }
     footer {
       margin-top: 40px;
@@ -129,14 +129,14 @@
       overflow-y: auto;
       text-align: left;
       font-size: 12px;
-      width: 600px;
+      width: 300px;
       max-width: 90%;
     }
-    @media (max-width: 768px) {
-      .relays-container {
-        flex-direction: column;
-        align-items: center;
-      }
+    .relays-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
     }
   </style>
 </head>
@@ -148,8 +148,13 @@
     Disconnected
   </div>
 
+  <div class="all-controls">
+    <button class="on-btn" id="allOnBtn" disabled>All ON</button>
+    <button class="off-btn" id="allOffBtn" disabled>All OFF</button>
+  </div>
+
   <div class="relays-container" id="relaysContainer">
-    <!-- سيتم إضافة البطاقات ديناميكياً -->
+    <!-- سيتم إنشاء كروت الريلاي ديناميكياً -->
   </div>
 
   <div class="log" id="messageLog">
@@ -171,17 +176,21 @@
       password: 'Niz774121',
       clientId: 'webclient_' + Math.random().toString(16).substr(2, 8),
       topics: {
-        control: 'esp32/relay',
+        control: 'esp32/relay/control',
         status: 'esp32/relay/status'
       }
     };
 
     let mqttClient = null;
     let isConnected = false;
+    const numRelays = 4;
+    let relayStates = Array(numRelays).fill('OFF');
 
     // DOM elements
     const connectionStatus = document.getElementById('connectionStatus');
     const relaysContainer = document.getElementById('relaysContainer');
+    const allOnBtn = document.getElementById('allOnBtn');
+    const allOffBtn = document.getElementById('allOffBtn');
     const messageLog = document.getElementById('messageLog');
 
     // إضافة رسالة للـ log
@@ -198,41 +207,69 @@
       if (status) {
         connectionStatus.textContent = 'Connected' + (message ? ' - ' + message : '');
         connectionStatus.className = 'connection-status connected';
-        
-        // تفعيل جميع الأزرار
-        document.querySelectorAll('button').forEach(btn => {
-          btn.disabled = false;
-        });
+        allOnBtn.disabled = false;
+        allOffBtn.disabled = false;
+        enableAllRelayButtons(true);
       } else {
         connectionStatus.textContent = 'Disconnected' + (message ? ' - ' + message : '');
         connectionStatus.className = 'connection-status disconnected';
-        
-        // تعطيل جميع الأزرار
-        document.querySelectorAll('button').forEach(btn => {
-          btn.disabled = true;
-        });
+        allOnBtn.disabled = true;
+        allOffBtn.disabled = true;
+        enableAllRelayButtons(false);
       }
+    }
+
+    // تفعيل/تعطيل أزرار الريلاي
+    function enableAllRelayButtons(enabled) {
+      const buttons = document.querySelectorAll('.relay-btn');
+      buttons.forEach(btn => {
+        btn.disabled = !enabled;
+      });
     }
 
     // تحديث حالة الريلاي
     function updateRelayStatus(relayNumber, status) {
-      const relayStatus = document.getElementById(`relayStatus${relayNumber}`);
+      const statusElement = document.getElementById(`relayStatus${relayNumber}`);
       const toggleBtn = document.getElementById(`toggleBtn${relayNumber}`);
       
-      if (relayStatus && toggleBtn) {
+      if (statusElement && toggleBtn) {
         const isOn = status === 'ON';
-        relayStatus.textContent = status;
-        relayStatus.className = `status ${isOn ? 'on' : 'off'}`;
+        statusElement.textContent = status;
+        statusElement.className = `status ${isOn ? 'on' : 'off'}`;
         
         toggleBtn.textContent = isOn ? 'Turn OFF' : 'Turn ON';
-        toggleBtn.style.backgroundColor = isOn ? '#f44336' : '#4CAF50';
+        toggleBtn.className = `toggle-btn ${isOn ? 'off-btn' : 'on-btn'}`;
         
+        relayStates[relayNumber - 1] = status;
         addLog(`Relay ${relayNumber} status: ${status}`);
       }
     }
 
+    // معالجة رسالة الحالة
+    function handleStatusMessage(message) {
+      if (message === 'ALL_ON') {
+        for (let i = 1; i <= numRelays; i++) {
+          updateRelayStatus(i, 'ON');
+        }
+      } else if (message === 'ALL_OFF') {
+        for (let i = 1; i <= numRelays; i++) {
+          updateRelayStatus(i, 'OFF');
+        }
+      } else {
+        // معالجة الحالات الفردية: "1_ON", "2_OFF", إلخ
+        const parts = message.split('_');
+        if (parts.length === 2) {
+          const relayNum = parseInt(parts[0]);
+          const state = parts[1];
+          if (relayNum >= 1 && relayNum <= numRelays) {
+            updateRelayStatus(relayNum, state);
+          }
+        }
+      }
+    }
+
     // إرسال أمر للريلاي
-    function sendCommand(relayNumber, command) {
+    function sendCommand(command) {
       if (!isConnected || !mqttClient) {
         addLog('Error: Not connected to MQTT broker');
         alert('Not connected to MQTT broker');
@@ -240,44 +277,64 @@
       }
 
       try {
-        const topic = `${mqttConfig.topics.control}${relayNumber}/control`;
-        mqttClient.publish(topic, command);
-        addLog(`Command sent to Relay ${relayNumber}: ${command}`);
+        mqttClient.publish(mqttConfig.topics.control, command);
+        addLog(`Command sent: ${command}`);
       } catch (error) {
         addLog(`Error sending command: ${error}`);
         alert('Error sending command');
       }
     }
 
-    // إنشاء بطاقات الريلays
+    // إنشاء واجهة الريلاي ديناميكياً
     function createRelayCards() {
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; i <= numRelays; i++) {
         const relayCard = document.createElement('div');
         relayCard.className = 'relay-card';
         relayCard.innerHTML = `
           <h2>Relay ${i}</h2>
           <div class="status off" id="relayStatus${i}">OFF</div>
-          <button class="toggle-btn" id="toggleBtn${i}" disabled>Toggle Relay</button>
           <div class="controls">
-            <button class="on-btn" id="onBtn${i}" disabled>ON</button>
-            <button class="off-btn" id="offBtn${i}" disabled>OFF</button>
+            <button class="on-btn relay-btn" id="onBtn${i}" disabled>ON</button>
+            <button class="off-btn relay-btn" id="offBtn${i}" disabled>OFF</button>
+            <button class="toggle-btn relay-btn" id="toggleBtn${i}" disabled>Toggle</button>
           </div>
         `;
         relaysContainer.appendChild(relayCard);
-        
-        // إضافة معالجات الأحداث
-        document.getElementById(`toggleBtn${i}`).addEventListener('click', () => {
-          sendCommand(i, 'TOGGLE');
-        });
-        
+      }
+    }
+
+    // إعداد معالجات الأحداث
+    function setupEventListeners() {
+      // أحداث الأزرار العامة
+      allOnBtn.addEventListener('click', () => {
+        sendCommand('ALL_ON');
+      });
+
+      allOffBtn.addEventListener('click', () => {
+        sendCommand('ALL_OFF');
+      });
+
+      // أحداث أزرار الريلاي الفردية
+      for (let i = 1; i <= numRelays; i++) {
         document.getElementById(`onBtn${i}`).addEventListener('click', () => {
-          sendCommand(i, 'ON');
+          sendCommand(`${i}_ON`);
         });
-        
+
         document.getElementById(`offBtn${i}`).addEventListener('click', () => {
-          sendCommand(i, 'OFF');
+          sendCommand(`${i}_OFF`);
+        });
+
+        document.getElementById(`toggleBtn${i}`).addEventListener('click', () => {
+          sendCommand(`${i}_TOGGLE`);
         });
       }
+
+      // إعادة الاتصال يدوياً
+      connectionStatus.addEventListener('click', () => {
+        if (!isConnected) {
+          connectMQTT();
+        }
+      });
     }
 
     // الاتصال بـ MQTT
@@ -306,27 +363,22 @@
           addLog('Successfully connected to MQTT broker');
           updateConnectionStatus(true, 'Connected to HiveMQ');
           
-          // الاشتراك في مواضيع الحالة لجميع الريلays
-          for (let i = 1; i <= 4; i++) {
-            mqttClient.subscribe(`${mqttConfig.topics.status}/relay${i}`, (err) => {
-              if (err) {
-                addLog(`Subscription error for relay ${i}: ${err}`);
-              } else {
-                addLog(`Subscribed to: ${mqttConfig.topics.status}/relay${i}`);
-              }
-            });
-          }
+          // الاشتراك في موضوع الحالة
+          mqttClient.subscribe(mqttConfig.topics.status, (err) => {
+            if (err) {
+              addLog(`Subscription error: ${err}`);
+            } else {
+              addLog(`Subscribed to: ${mqttConfig.topics.status}`);
+            }
+          });
         });
 
         mqttClient.on('message', (topic, message) => {
           const payload = message.toString();
           addLog(`Message received: ${topic} = ${payload}`);
           
-          // استخراج رقم الريلاي من التوبيك
-          const relayMatch = topic.match(/relay(\d+)$/);
-          if (relayMatch) {
-            const relayNumber = parseInt(relayMatch[1]);
-            updateRelayStatus(relayNumber, payload);
+          if (topic === mqttConfig.topics.status) {
+            handleStatusMessage(payload);
           }
         });
 
@@ -360,6 +412,7 @@
     window.addEventListener('load', () => {
       addLog('Page loaded, initializing MQTT connection...');
       createRelayCards();
+      setupEventListeners();
       connectMQTT();
     });
 
