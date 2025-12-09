@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Smart Home Control</title>
     <style>
         * {
@@ -34,12 +34,12 @@
 
         .welcome-section {
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
             border-radius: 20px;
-            padding: 20px;
+            padding: 18px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .greeting {
@@ -89,37 +89,86 @@
             margin-bottom: 20px;
         }
 
+        /* Metallic device card */
         .device-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg,
+                rgba(255,255,255,0.03) 0%,
+                rgba(255,255,255,0.02) 25%,
+                rgba(255,255,255,0.05) 50%,
+                rgba(255,255,255,0.02) 75%,
+                rgba(255,255,255,0.01) 100%);
             border-radius: 20px;
-            padding: 20px;
+            padding: 18px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.2s ease;
             cursor: pointer;
+            backdrop-filter: blur(8px);
+        }
+
+        .device-card::before {
+            content: "";
+            position: absolute;
+            left: -50%;
+            top: -40%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(120deg, rgba(255,255,255,0.05), rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+            transform: rotate(25deg) translateX(-60%);
+            transition: transform 0.6s ease;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .device-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        .device-card:active {
+            transform: scale(0.99);
         }
 
         .device-card.active {
-            background: rgba(76, 175, 80, 0.2);
-            border-color: rgba(76, 175, 80, 0.5);
+            border-color: rgba(76, 175, 80, 0.6);
+            box-shadow: 0 12px 34px rgba(76,175,80,0.18), inset 0 -6px 20px rgba(76,175,80,0.04);
+            transform: translateY(-6px) scale(1.01);
+        }
+
+        .device-card.active::before {
+            transform: rotate(25deg) translateX(0%);
+            opacity: 1;
+        }
+
+        .device-card.processing {
+            opacity: 0.75;
+            pointer-events: none;
         }
 
         .device-icon {
-            font-size: 32px;
+            font-size: 34px;
             margin-bottom: 10px;
-            opacity: 0.9;
+            opacity: 0.95;
+            transition: transform 0.25s ease, text-shadow 0.25s ease;
+        }
+
+        .device-card.active .device-icon {
+            transform: translateY(-4px);
+            text-shadow: 0 6px 18px rgba(76,175,80,0.35);
         }
 
         .device-name {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 8px;
+            letter-spacing: 0.2px;
         }
 
         .device-status {
             font-size: 12px;
-            opacity: 0.7;
+            opacity: 0.75;
         }
 
         .control-buttons {
@@ -130,46 +179,53 @@
         }
 
         .control-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 15px;
-            padding: 15px;
+            padding: 14px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
+            transition: all 0.18s ease;
+            font-weight: 700;
+            user-select: none;
         }
 
         .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.28);
         }
 
         .control-btn.all-on {
-            background: rgba(76, 175, 80, 0.3);
-            border-color: rgba(76, 175, 80, 0.5);
+            background: linear-gradient(180deg, rgba(76,175,80,0.12), rgba(76,175,80,0.06));
+            border-color: rgba(76,175,80,0.28);
         }
 
         .control-btn.all-off {
-            background: rgba(244, 67, 54, 0.3);
-            border-color: rgba(244, 67, 54, 0.5);
+            background: linear-gradient(180deg, rgba(244,67,54,0.12), rgba(244,67,54,0.06));
+            border-color: rgba(244,67,54,0.28);
+        }
+
+        .control-btn.processing {
+            opacity: 0.75;
+            pointer-events: none;
         }
 
         .log-toggle-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 15px;
             padding: 12px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
+            transition: all 0.18s ease;
+            font-weight: 700;
             font-size: 14px;
             margin-top: 10px;
             width: 100%;
         }
 
         .log-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         /* Switch Styles */
@@ -178,12 +234,14 @@
             display: inline-block;
             width: 54px;
             height: 28px;
+            vertical-align: middle;
         }
 
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
+            pointer-events: auto;
         }
 
         .slider {
@@ -193,9 +251,10 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(255, 255, 255, 0.2);
-            transition: .4s;
+            background-color: rgba(255, 255, 255, 0.12);
+            transition: .28s;
             border-radius: 34px;
+            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.35);
         }
 
         .slider:before {
@@ -206,16 +265,19 @@
             left: 4px;
             bottom: 4px;
             background-color: white;
-            transition: .4s;
+            transition: .28s;
             border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
         }
 
         input:checked + .slider {
-            background-color: #4CAF50;
+            background-color: rgba(76,175,80,0.95);
+            box-shadow: 0 0 18px rgba(76,175,80,0.12), inset 0 -3px 8px rgba(0,0,0,0.3);
         }
 
         input:checked + .slider:before {
             transform: translateX(26px);
+            box-shadow: 0 0 18px rgba(76,175,80,0.6);
         }
 
         /* Animations */
@@ -234,38 +296,122 @@
         }
         
         .log-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
             border-radius: 20px;
-            padding: 15px;
+            padding: 14px;
             margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.04);
             max-height: 150px;
             overflow-y: auto;
-            display: none; /* مخفي افتراضيًا */
+            display: none;
         }
         
         .log-section.visible {
-            display: block; /* يظهر عند التفعيل */
+            display: block;
         }
         
         .log-title {
             font-size: 14px;
             margin-bottom: 10px;
-            opacity: 0.8;
+            opacity: 0.85;
         }
         
         .log-content {
             font-size: 12px;
             line-height: 1.4;
         }
+
+        .system-status {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .system-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .system-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.mqtt {
+            background: rgba(76, 175, 80, 0.12);
+        }
+
+        .status-badge.rainmaker {
+            background: rgba(33, 150, 243, 0.10);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 26px;
+            background: rgba(255, 255, 255, 0.94);
+            color: #222;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            display: block;
+            opacity: 0;
+            transform: translateX(150%);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+            pointer-events: none;
+            transition: transform 0.36s cubic-bezier(.2,.9,.3,1), opacity 0.36s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0%);
+        }
+
+        .notification.hide {
+            opacity: 0;
+            transform: translateX(150%);
+        }
+
+        @media (max-width:420px) {
+            .container { padding: 8px; }
+        }
     </style>
 </head>
 <body>
+    <!-- Notification -->
+    <div class="notification" id="notification" aria-live="polite"></div>
+
     <div class="container">
         <!-- Header Section -->
         <div class="header fade-in">
-            <h1>Smart Light Control</h1>
+            <h1>Smart Home Control</h1>
+        </div>
+
+        <!-- System Status -->
+        <div class="system-status fade-in">
+            <div class="system-name">Nizar's Smart Home</div>
+            <div class="system-status-indicator">
+                <div class="status-badge mqtt">MQTT</div>
+                <div class="status-badge rainmaker">RainMaker</div>
+            </div>
         </div>
 
         <!-- Connection Status -->
@@ -276,74 +422,57 @@
             </div>
             <div class="connection-status">
                 <div class="status-dot" id="relayDot"></div>
-                <span class="status-text">Relays: <span id="relayStatus">Connected</span></span>
-            </div>
-        </div>
-
-        <!-- Welcome Section -->
-        <div class="welcome-section fade-in">
-            <div class="greeting">Hi User</div>
-            <div class="location">Welcome to MQTT Control</div>
-        </div>
-
-        <!-- Rooms Section -->
-        <div class="welcome-section fade-in" style="animation-delay: 0.1s">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div class="greeting">Living Room</div>
-                    <div class="location">4 Relays Control</div>
-                </div>
-                <div class="location">Bedroom</div>
+                <span class="status-text">ESP32: <span id="relayStatus">Waiting...</span></span>
             </div>
         </div>
 
         <!-- Control Buttons -->
-        <div class="control-buttons fade-in" style="animation-delay: 0.15s">
-            <div class="control-btn all-on" id="allOnBtn">
+        <div class="control-buttons fade-in" style="animation-delay: 0.1s">
+            <div class="control-btn all-on" id="allOnBtn" role="button" tabindex="0">
                 <div>🔆 ALL ON</div>
             </div>
-            <div class="control-btn all-off" id="allOffBtn">
+            <div class="control-btn all-off" id="allOffBtn" role="button" tabindex="0">
                 <div>🌙 ALL OFF</div>
             </div>
         </div>
 
         <!-- Devices Grid -->
         <div class="devices-grid">
-            <div class="device-card fade-in" style="animation-delay: 0.2s" id="relayCard1">
+            <div class="device-card fade-in" style="animation-delay: 0.2s" id="relayCard1" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
-                <div class="device-name">Relay 1</div>
-                <label class="switch">
-                    <input type="checkbox" id="relay1">
+                <div class="device-name">Light 1</div>
+                <label class="switch" aria-hidden="false">
+                    <input type="checkbox" id="relay1" />
                     <span class="slider"></span>
                 </label>
                 <div class="device-status" id="status1">OFF</div>
             </div>
 
-            <div class="device-card fade-in" style="animation-delay: 0.3s" id="relayCard2">
+            <div class="device-card fade-in" style="animation-delay: 0.3s" id="relayCard2" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
-                <div class="device-name">Relay 2</div>
+                <div class="device-name">Light 2</div>
                 <label class="switch">
-                    <input type="checkbox" id="relay2">
+                    <input type="checkbox" id="relay2" />
                     <span class="slider"></span>
                 </label>
                 <div class="device-status" id="status2">OFF</div>
             </div>
 
-            <div class="device-card fade-in" style="animation-delay: 0.4s" id="relayCard3">
+            <div class="device-card fade-in" style="animation-delay: 0.4s" id="relayCard3" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
-                <div class="device-name">Relay 3</div>
+                <div class="device-name">Light 3</div>
                 <label class="switch">
-                    <input type="checkbox" id="relay3">
+                    <input type="checkbox" id="relay3" />
                     <span class="slider"></span>
                 </label>
                 <div class="device-status" id="status3">OFF</div>
             </div>
 
-            <div class="device-card fade-in" style="animation-delay: 0.5s" id="relayCard4">
+            <div class="device-card fade-in" style="animation-delay: 0.5s" id="relayCard4" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
-                <div class="device-name">Relay 4</div>
+                <div class="device-name">Light 4</div>
                 <label class="switch">
-                    <input type="checkbox" id="relay4">
+                    <input type="checkbox" id="relay4" />
                     <span class="slider"></span>
                 </label>
                 <div class="device-status" id="status4">OFF</div>
@@ -355,7 +484,7 @@
             📋 Show Connection Log
         </div>
 
-        <!-- Log Section (مخفي افتراضيًا) -->
+        <!-- Log Section -->
         <div class="log-section" id="logSection">
             <div class="log-title">Connection Log</div>
             <div class="log-content" id="messageLog">
@@ -365,9 +494,9 @@
 
         <!-- Info Section -->
         <div class="welcome-section fade-in" style="animation-delay: 0.7s; text-align: center;">
-            <div class="location">MQTT Relay Control System</div>
+            <div class="location">MQTT + RainMaker Integrated System</div>
             <div style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
-                Control your relays remotely with MQTT
+                Control your devices through both MQTT and RainMaker
             </div>
         </div>
     </div>
@@ -377,14 +506,15 @@
         // MQTT configuration
         const mqttConfig = {
             protocol: 'wss',
-            host: '2ab5d234f212496e8ebf8830645f7dcd.s1.eu.hivemq.cloud',
-            port: 8884,
-            username: 'nizar',
-            password: 'Niz774121',
+            host: 'broker.emqx.io',
+            port: 8084,
+            username: 'emqx',
+            password: 'public',
             clientId: 'webclient_' + Math.random().toString(16).substr(2, 8),
             topics: {
                 control: 'esp32/relay/control',
-                status: 'esp32/relay/status'
+                status: 'esp32/relay/status',
+                state: 'esp32/relay/state'
             }
         };
 
@@ -393,6 +523,9 @@
         const numRelays = 4;
         let relayStates = Array(numRelays).fill(false);
         let isLogVisible = false;
+        let isProcessing = false;
+        let pendingUpdates = new Map();
+        let reconnectInterval;
 
         // DOM elements
         const mqttStatus = document.getElementById('mqttStatus');
@@ -404,12 +537,25 @@
         const messageLog = document.getElementById('messageLog');
         const logSection = document.getElementById('logSection');
         const logToggleBtn = document.getElementById('logToggleBtn');
+        const notification = document.getElementById('notification');
+
+        // إلغاء إشعارات: تحويل الدالة إلى لا شيء (no-op)
+        function showNotification(/*message, duration = 3000*/) {
+            // intentionally empty to disable notifications per user request
+            return;
+        }
 
         // إضافة رسالة للـ log
         function addLog(message) {
             const timestamp = new Date().toLocaleTimeString();
             messageLog.innerHTML = `[${timestamp}] ${message}<br>` + messageLog.innerHTML;
             console.log(message);
+            
+            // تقليل حجم الـ log إذا كان كبيراً
+            const lines = messageLog.innerHTML.split('<br>');
+            if (lines.length > 30) {
+                messageLog.innerHTML = lines.slice(0, 20).join('<br>');
+            }
         }
 
         // تبديل عرض سجل الاتصال
@@ -431,13 +577,23 @@
             if (connected) {
                 mqttStatus.textContent = 'Connected' + (message ? ' - ' + message : '');
                 mqttDot.classList.remove('disconnected');
+                relayStatus.textContent = 'Online';
+                relayDot.classList.remove('disconnected');
                 allOnBtn.style.pointerEvents = 'auto';
                 allOffBtn.style.pointerEvents = 'auto';
                 allOnBtn.style.opacity = '1';
                 allOffBtn.style.opacity = '1';
+                
+                // إرسال طلب للحالة الحالية
+                setTimeout(() => {
+                    sendCommand('STATUS_REQUEST');
+                    addLog('Requested current status from ESP32');
+                }, 500);
             } else {
                 mqttStatus.textContent = 'Disconnected' + (message ? ' - ' + message : '');
                 mqttDot.classList.add('disconnected');
+                relayStatus.textContent = 'Offline';
+                relayDot.classList.add('disconnected');
                 allOnBtn.style.pointerEvents = 'none';
                 allOffBtn.style.pointerEvents = 'none';
                 allOnBtn.style.opacity = '0.5';
@@ -446,42 +602,109 @@
         }
 
         // تحديث حالة الريلاي
-        function updateRelayStatus(relayNumber, status) {
+        function updateRelayStatus(relayNumber, status, fromServer = true) {
+            // إذا كان التحديث قادماً من السيرفر وكان هناك تحديث معلق، تجاهله (تم تأكيده)
+            if (fromServer && pendingUpdates.has(relayNumber)) {
+                pendingUpdates.delete(relayNumber);
+                // حتى لو تم التأكيد، نحتاج لتحديث العرض وفق الحالة المرسلة
+            }
+            
             const checkbox = document.getElementById(`relay${relayNumber}`);
             const statusElement = document.getElementById(`status${relayNumber}`);
             const card = document.getElementById(`relayCard${relayNumber}`);
             
             if (checkbox && statusElement && card) {
                 const isOn = status === 'ON';
-                checkbox.checked = isOn;
+                // تحديث checkbox بدون إطلاق حدث change إضافي
+                if (checkbox.checked !== isOn) {
+                    checkbox.checked = isOn;
+                }
                 statusElement.textContent = status;
-                statusElement.style.color = isOn ? "#4CAF50" : "rgba(255,255,255,0.7)";
+                statusElement.style.color = isOn ? "#4CAF50" : "rgba(255,255,255,0.75)";
+                statusElement.style.fontWeight = isOn ? "700" : "500";
                 card.classList.toggle('active', isOn);
                 
                 relayStates[relayNumber - 1] = isOn;
-                addLog(`Relay ${relayNumber} status: ${status}`);
+                
+                if (fromServer) {
+                    addLog(`Relay ${relayNumber} updated: ${status}`);
+                }
             }
         }
 
-        // معالجة رسالة الحالة
-        function handleStatusMessage(message) {
+        // معالجة رسالة الحالة من موضوع الحالة الحية
+        function handleStateMessage(message) {
+            addLog(`State update: ${message}`);
+            
+            // معالجة حالة ALL
             if (message === 'ALL_ON') {
                 for (let i = 1; i <= numRelays; i++) {
-                    updateRelayStatus(i, 'ON');
+                    updateRelayStatus(i, 'ON', true);
+                    pendingUpdates.delete(i);
                 }
+                isProcessing = false;
+                removeProcessingClasses();
+                return;
             } else if (message === 'ALL_OFF') {
                 for (let i = 1; i <= numRelays; i++) {
-                    updateRelayStatus(i, 'OFF');
+                    updateRelayStatus(i, 'OFF', true);
+                    pendingUpdates.delete(i);
                 }
-            } else {
-                // معالجة الحالات الفردية: "1_ON", "2_OFF", إلخ
-                const parts = message.split('_');
-                if (parts.length === 2) {
-                    const relayNum = parseInt(parts[0]);
-                    const state = parts[1];
-                    if (relayNum >= 1 && relayNum <= numRelays) {
-                        updateRelayStatus(relayNum, state);
+                isProcessing = false;
+                removeProcessingClasses();
+                return;
+            }
+            
+            // معالجة تحديث جميع الحالات مرة واحدة
+            if (message.startsWith('ALL:')) {
+                const statesStr = message.substring(4);
+                const states = statesStr.split(',');
+                
+                for (let state of states) {
+                    const parts = state.split('_');
+                    if (parts.length === 2) {
+                        const relayNum = parseInt(parts[0]);
+                        const relayState = parts[1];
+                        if (relayNum >= 1 && relayNum <= numRelays) {
+                            updateRelayStatus(relayNum, relayState, true);
+                            pendingUpdates.delete(relayNum);
+                        }
                     }
+                }
+                isProcessing = false;
+                removeProcessingClasses();
+                return;
+            }
+            
+            // معالجة الحالات الفردية
+            const parts = message.split('_');
+            if (parts.length === 2) {
+                const relayNum = parseInt(parts[0]);
+                const state = parts[1];
+                if (relayNum >= 1 && relayNum <= numRelays) {
+                    updateRelayStatus(relayNum, state, true);
+                    pendingUpdates.delete(relayNum);
+                    
+                    // إزالة حالة المعالجة بعد تأخير قصير
+                    setTimeout(() => {
+                        const card = document.getElementById(`relayCard${relayNum}`);
+                        if (card) {
+                            card.classList.remove('processing');
+                        }
+                        isProcessing = false;
+                    }, 300);
+                }
+            }
+        }
+
+        // إزالة فئات المعالجة من جميع الأزرار
+        function removeProcessingClasses() {
+            allOnBtn.classList.remove('processing');
+            allOffBtn.classList.remove('processing');
+            for (let i = 1; i <= numRelays; i++) {
+                const card = document.getElementById(`relayCard${i}`);
+                if (card) {
+                    card.classList.remove('processing');
                 }
             }
         }
@@ -490,29 +713,179 @@
         function sendCommand(command) {
             if (!isConnected || !mqttClient) {
                 addLog('Error: Not connected to MQTT broker');
-                alert('Not connected to MQTT broker');
-                return;
+                // notifications disabled
+                return false;
             }
 
             try {
                 mqttClient.publish(mqttConfig.topics.control, command);
                 addLog(`Command sent: ${command}`);
+                return true;
             } catch (error) {
                 addLog(`Error sending command: ${error}`);
-                alert('Error sending command');
+                // notifications disabled
+                return false;
             }
         }
 
-        // تبديل حالة الريلاي
+        // تبديل حالة الريلاي (مصدر المستخدم)
         function toggleRelay(relayNumber) {
-            const currentState = relayStates[relayNumber - 1];
-            const newState = !currentState;
-            sendCommand(`${relayNumber}_${newState ? 'ON' : 'OFF'}`);
+            // تحقق من المعالجة المتزامنة
+            if (isProcessing) {
+                // notifications disabled
+                return;
+            }
+            
+            if (!isConnected || !mqttClient) {
+                addLog('Error: Not connected to MQTT broker');
+                // notifications disabled
+                return;
+            }
+            
+            const checkbox = document.getElementById(`relay${relayNumber}`);
+            const card = document.getElementById(`relayCard${relayNumber}`);
+            if (!checkbox || !card) return;
+
+            // الحالة المطلوبة تأتي من حالة الـ checkbox الحالية (لأن المستخدم ضغط عليها أو البطاقة ضغطت عليها)
+            const desiredState = checkbox.checked;
+            const desiredStateStr = desiredState ? 'ON' : 'OFF';
+            const previousState = relayStates[relayNumber - 1];
+
+            // تحديث واجهة المستخدم فوراً (من مصدر المستخدم)
+            updateRelayStatus(relayNumber, desiredStateStr, false);
+
+            // وضع علامة أن هذا التحديث قيد المعالجة
+            pendingUpdates.set(relayNumber, desiredState);
+            
+            // إضافة فئة التحميل
+            card.classList.add('processing');
+            isProcessing = true;
+
+            // إرسال الأمر
+            const success = sendCommand(`${relayNumber}_${desiredStateStr}`);
+
+            // إذا فشل الإرسال، نرجع الحالة
+            if (!success) {
+                setTimeout(() => {
+                    updateRelayStatus(relayNumber, previousState ? 'ON' : 'OFF', false);
+                    card.classList.remove('processing');
+                    pendingUpdates.delete(relayNumber);
+                    isProcessing = false;
+                }, 300);
+                return;
+            }
+            
+            // إزالة فئة المعالجة بعد تأخير قصير (لكن تبقى حالة revert إذا لا يوجد تأكيد)
+            setTimeout(() => {
+                card.classList.remove('processing');
+                isProcessing = false;
+            }, 500);
+            
+            // إذا لم نستلم تأكيداً خلال 3 ثوان، نعيد الحالة
+            setTimeout(() => {
+                if (pendingUpdates.has(relayNumber)) {
+                    addLog(`Warning: No confirmation for relay ${relayNumber}, reverting...`);
+                    updateRelayStatus(relayNumber, previousState ? 'ON' : 'OFF', false);
+                    // notifications disabled
+                    pendingUpdates.delete(relayNumber);
+                    card.classList.remove('processing');
+                    isProcessing = false;
+                }
+            }, 3000);
         }
 
         // التحكم في جميع الريلايات
         function controlAllRelays(state) {
-            sendCommand(state ? 'ALL_ON' : 'ALL_OFF');
+            if (isProcessing) {
+                // notifications disabled
+                return;
+            }
+            
+            if (!isConnected || !mqttClient) {
+                addLog('Error: Not connected to MQTT broker');
+                // notifications disabled
+                return;
+            }
+            
+            isProcessing = true;
+            
+            // تحديث جميع الواجهات فوراً
+            for (let i = 1; i <= numRelays; i++) {
+                updateRelayStatus(i, state ? 'ON' : 'OFF', false);
+                pendingUpdates.set(i, state);
+                const card = document.getElementById(`relayCard${i}`);
+                if (card) {
+                    card.classList.add('processing');
+                }
+            }
+            
+            // إضافة فئة المعالجة للأزرار
+            if (state) {
+                allOnBtn.classList.add('processing');
+            } else {
+                allOffBtn.classList.add('processing');
+            }
+            
+            const success = sendCommand(state ? 'ALL_ON' : 'ALL_OFF');
+            
+            // إذا فشل الإرسال، نرجع جميع الحالات
+            if (!success) {
+                setTimeout(() => {
+                    for (let i = 1; i <= numRelays; i++) {
+                        const currentState = relayStates[i - 1];
+                        updateRelayStatus(i, currentState ? 'ON' : 'OFF', false);
+                        const card = document.getElementById(`relayCard${i}`);
+                        if (card) {
+                            card.classList.remove('processing');
+                        }
+                        pendingUpdates.delete(i);
+                    }
+                    removeProcessingClasses();
+                    isProcessing = false;
+                }, 500);
+                return;
+            }
+            
+            // إزالة فئات المعالجة بعد تأخير قصير
+            setTimeout(() => {
+                removeProcessingClasses();
+                isProcessing = false;
+            }, 500);
+            
+            // إذا لم نستلم تأكيداً خلال 3 ثوان، نعيد جميع الحالات
+            setTimeout(() => {
+                let hasPending = false;
+                for (let i = 1; i <= numRelays; i++) {
+                    if (pendingUpdates.has(i)) {
+                        hasPending = true;
+                        break;
+                    }
+                }
+                
+                if (hasPending) {
+                    addLog(`Warning: No confirmation for ALL command, reverting...`);
+                    for (let i = 1; i <= numRelays; i++) {
+                        const currentState = relayStates[i - 1];
+                        updateRelayStatus(i, currentState ? 'ON' : 'OFF', false);
+                        pendingUpdates.delete(i);
+                    }
+                    // notifications disabled
+                    removeProcessingClasses();
+                    isProcessing = false;
+                }
+            }, 3000);
+        }
+
+        // محاولة إعادة الاتصال تلقائياً
+        function startReconnectTimer() {
+            if (reconnectInterval) clearInterval(reconnectInterval);
+            
+            reconnectInterval = setInterval(() => {
+                if (!isConnected && !mqttClient) {
+                    addLog('Attempting auto-reconnect...');
+                    connectMQTT();
+                }
+            }, 10000);
         }
 
         // إعداد معالجات الأحداث
@@ -526,10 +899,46 @@
                 controlAllRelays(false);
             });
 
-            // أحداث كروت الريلاي الفردية
+            // أحداث كروت الريلاي الفردية و input
             for (let i = 1; i <= numRelays; i++) {
-                document.getElementById(`relayCard${i}`).addEventListener('click', () => {
+                const card = document.getElementById(`relayCard${i}`);
+                const checkbox = document.getElementById(`relay${i}`);
+
+                if (!card || !checkbox) continue;
+
+                // عند النقر على السويتش: امنع انتشار الحدث نحو البطاقة (حتى لا يتفاعل مرتين)
+                checkbox.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                });
+
+                // عند تغيير حالة السويتش (نقرة المستخدم) نفّذ نفس دالة التبديل
+                // *** تعديل هنا: نُحدّث الواجهة فوراً بنفس طريقة النقر على البطاقة ثم ننفّذ toggleRelay ***
+                checkbox.addEventListener('change', (ev) => {
+                    ev.stopPropagation();
+                    // اعكس الواجهة فوراً كما لو أن البطاقة بالكامل قد تغيّرت
+                    const desiredState = checkbox.checked;
+                    updateRelayStatus(i, desiredState ? 'ON' : 'OFF', false);
+                    // ثم تنفيذ المنطق الأصلِي لإرسال الأمر ومعالجة التأكيد
                     toggleRelay(i);
+                });
+
+                // عند النقر على البطاقة، نفّذ نقرًا برمجياً على السويتش
+                card.addEventListener('click', (ev) => {
+                    // triggers checkbox click -> change handler -> toggleRelay
+                    // استدعاء برمجي مع تأخير طفيف لضمان مسار الحدث بشكل آمن
+                    setTimeout(() => {
+                        checkbox.click();
+                    }, 0);
+                });
+
+                // دعم الوصول للوحة المفاتيح (Enter/Space)
+                card.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        setTimeout(() => {
+                            checkbox.click();
+                        }, 0);
+                    }
                 });
             }
 
@@ -539,6 +948,14 @@
             // إعادة الاتصال يدوياً
             mqttDot.addEventListener('click', () => {
                 if (!isConnected) {
+                    // notifications disabled
+                    connectMQTT();
+                }
+            });
+
+            relayDot.addEventListener('click', () => {
+                if (!isConnected) {
+                    // notifications disabled
                     connectMQTT();
                 }
             });
@@ -547,7 +964,7 @@
         // الاتصال بـ MQTT
         function connectMQTT() {
             try {
-                addLog('Connecting to MQTT broker...');
+                addLog('Connecting to MQTT broker (EMQX)...');
                 updateConnectionStatus(false, 'Connecting...');
 
                 const url = `${mqttConfig.protocol}://${mqttConfig.host}:${mqttConfig.port}/mqtt`;
@@ -558,7 +975,8 @@
                     clientId: mqttConfig.clientId,
                     clean: true,
                     reconnectPeriod: 5000,
-                    connectTimeout: 5000
+                    connectTimeout: 5000,
+                    keepalive: 60
                 };
 
                 addLog(`Connecting to: ${url}`);
@@ -566,31 +984,55 @@
                 mqttClient = mqtt.connect(url, options);
 
                 mqttClient.on('connect', () => {
-                    addLog('Successfully connected to MQTT broker');
-                    updateConnectionStatus(true, 'Connected to HiveMQ');
+                    addLog('Successfully connected to EMQX MQTT broker');
+                    updateConnectionStatus(true, 'Connected to EMQX');
+                    // notifications disabled
+                    
+                    // الاشتراك في موضوع التحكم
+                    mqttClient.subscribe(mqttConfig.topics.control, (err) => {
+                        if (err) {
+                            addLog(`Control subscription error: ${err}`);
+                        } else {
+                            addLog(`Subscribed to: ${mqttConfig.topics.control}`);
+                        }
+                    });
                     
                     // الاشتراك في موضوع الحالة
                     mqttClient.subscribe(mqttConfig.topics.status, (err) => {
                         if (err) {
-                            addLog(`Subscription error: ${err}`);
+                            addLog(`Status subscription error: ${err}`);
                         } else {
                             addLog(`Subscribed to: ${mqttConfig.topics.status}`);
+                        }
+                    });
+                    
+                    // الاشتراك في موضوع الحالة الحية
+                    mqttClient.subscribe(mqttConfig.topics.state, (err) => {
+                        if (err) {
+                            addLog(`State subscription error: ${err}`);
+                        } else {
+                            addLog(`Subscribed to: ${mqttConfig.topics.state}`);
                         }
                     });
                 });
 
                 mqttClient.on('message', (topic, message) => {
                     const payload = message.toString();
-                    addLog(`Message received: ${topic} = ${payload}`);
                     
-                    if (topic === mqttConfig.topics.status) {
-                        handleStatusMessage(payload);
+                    if (topic === mqttConfig.topics.state) {
+                        handleStateMessage(payload);
+                    } else if (topic === mqttConfig.topics.status) {
+                        addLog(`Status message: ${topic} = ${payload}`);
+                        handleStateMessage(payload);
+                    } else if (topic === mqttConfig.topics.control) {
+                        addLog(`Control message: ${topic} = ${payload}`);
                     }
                 });
 
                 mqttClient.on('error', (error) => {
                     addLog(`Connection error: ${error}`);
                     updateConnectionStatus(false, 'Connection error');
+                    // notifications disabled
                 });
 
                 mqttClient.on('close', () => {
@@ -611,6 +1053,10 @@
             } catch (error) {
                 addLog(`Connection setup error: ${error}`);
                 updateConnectionStatus(false, 'Connection failed');
+                // notifications disabled
+                
+                // بدء مؤقت إعادة الاتصال حتى في حالة الخطأ
+                startReconnectTimer();
             }
         }
 
@@ -619,6 +1065,9 @@
             addLog('Page loaded, initializing MQTT connection...');
             setupEventListeners();
             connectMQTT();
+            startReconnectTimer();
+            
+            // لا إشعار الآن لأن showNotification معطلة
         });
 
         // تنظيف عند إغلاق الصفحة
@@ -626,8 +1075,18 @@
             if (mqttClient) {
                 mqttClient.end();
             }
+            if (reconnectInterval) {
+                clearInterval(reconnectInterval);
+            }
         });
 
+        // إضافة دعم اللمس المحسّن
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        
+        // منع التمرير المزدوج للتكبير
+        document.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+        }, { passive: false });
     </script>
 </body>
 </html>
