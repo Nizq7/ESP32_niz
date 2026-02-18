@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Smart Home Control</title>
+    <title>Smart Home Control - 10 Devices</title>
     <style>
         * {
             margin: 0;
@@ -22,7 +22,7 @@
         }
 
         .container {
-            max-width: 400px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
@@ -84,7 +84,7 @@
 
         .devices-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(5, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -390,8 +390,19 @@
             transform: translateX(150%);
         }
 
-        @media (max-width:420px) {
-            .container { padding: 8px; }
+        @media (max-width: 700px) {
+            .devices-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .devices-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .container { 
+                padding: 8px; 
+            }
         }
     </style>
 </head>
@@ -402,7 +413,7 @@
     <div class="container">
         <!-- Header Section -->
         <div class="header fade-in">
-            <h1>Smart Home Control</h1>
+            <h1>Smart Home Control - 10 Devices</h1>
         </div>
 
         <!-- System Status -->
@@ -436,8 +447,9 @@
             </div>
         </div>
 
-        <!-- Devices Grid -->
+        <!-- Devices Grid - 10 Devices -->
         <div class="devices-grid">
+            <!-- Device 1 -->
             <div class="device-card fade-in" style="animation-delay: 0.2s" id="relayCard1" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
                 <div class="device-name">Light 1</div>
@@ -448,7 +460,8 @@
                 <div class="device-status" id="status1">OFF</div>
             </div>
 
-            <div class="device-card fade-in" style="animation-delay: 0.3s" id="relayCard2" tabindex="0" role="button" aria-pressed="false">
+            <!-- Device 2 -->
+            <div class="device-card fade-in" style="animation-delay: 0.25s" id="relayCard2" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
                 <div class="device-name">Light 2</div>
                 <label class="switch">
@@ -458,7 +471,8 @@
                 <div class="device-status" id="status2">OFF</div>
             </div>
 
-            <div class="device-card fade-in" style="animation-delay: 0.4s" id="relayCard3" tabindex="0" role="button" aria-pressed="false">
+            <!-- Device 3 -->
+            <div class="device-card fade-in" style="animation-delay: 0.3s" id="relayCard3" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
                 <div class="device-name">Light 3</div>
                 <label class="switch">
@@ -468,7 +482,8 @@
                 <div class="device-status" id="status3">OFF</div>
             </div>
 
-            <div class="device-card fade-in" style="animation-delay: 0.5s" id="relayCard4" tabindex="0" role="button" aria-pressed="false">
+            <!-- Device 4 -->
+            <div class="device-card fade-in" style="animation-delay: 0.35s" id="relayCard4" tabindex="0" role="button" aria-pressed="false">
                 <div class="device-icon">💡</div>
                 <div class="device-name">Light 4</div>
                 <label class="switch">
@@ -477,10 +492,76 @@
                 </label>
                 <div class="device-status" id="status4">OFF</div>
             </div>
+
+            <!-- Device 5 -->
+            <div class="device-card fade-in" style="animation-delay: 0.4s" id="relayCard5" tabindex="0" role="button" aria-pressed="false">
+                <div class="device-icon">💡</div>
+                <div class="device-name">Light 5</div>
+                <label class="switch">
+                    <input type="checkbox" id="relay5" />
+                    <span class="slider"></span>
+                </label>
+                <div class="device-status" id="status5">OFF</div>
+            </div>
+
+            <!-- Device 6 -->
+            <div class="device-card fade-in" style="animation-delay: 0.45s" id="relayCard6" tabindex="0" role="button" aria-pressed="false">
+                <div class="device-icon">💡</div>
+                <div class="device-name">Light 6</div>
+                <label class="switch">
+                    <input type="checkbox" id="relay6" />
+                    <span class="slider"></span>
+                </label>
+                <div class="device-status" id="status6">OFF</div>
+            </div>
+
+            <!-- Device 7 -->
+            <div class="device-card fade-in" style="animation-delay: 0.5s" id="relayCard7" tabindex="0" role="button" aria-pressed="false">
+                <div class="device-icon">💡</div>
+                <div class="device-name">Light 7</div>
+                <label class="switch">
+                    <input type="checkbox" id="relay7" />
+                    <span class="slider"></span>
+                </label>
+                <div class="device-status" id="status7">OFF</div>
+            </div>
+
+            <!-- Device 8 -->
+            <div class="device-card fade-in" style="animation-delay: 0.55s" id="relayCard8" tabindex="0" role="button" aria-pressed="false">
+                <div class="device-icon">💡</div>
+                <div class="device-name">Light 8</div>
+                <label class="switch">
+                    <input type="checkbox" id="relay8" />
+                    <span class="slider"></span>
+                </label>
+                <div class="device-status" id="status8">OFF</div>
+            </div>
+
+            <!-- Device 9 -->
+            <div class="device-card fade-in" style="animation-delay: 0.6s" id="relayCard9" tabindex="0" role="button" aria-pressed="false">
+                <div class="device-icon">💡</div>
+                <div class="device-name">Light 9</div>
+                <label class="switch">
+                    <input type="checkbox" id="relay9" />
+                    <span class="slider"></span>
+                </label>
+                <div class="device-status" id="status9">OFF</div>
+            </div>
+
+            <!-- Device 10 -->
+            <div class="device-card fade-in" style="animation-delay: 0.65s" id="relayCard10" tabindex="0" role="button" aria-pressed="false">
+                <div class="device-icon">💡</div>
+                <div class="device-name">Light 10</div>
+                <label class="switch">
+                    <input type="checkbox" id="relay10" />
+                    <span class="slider"></span>
+                </label>
+                <div class="device-status" id="status10">OFF</div>
+            </div>
         </div>
 
         <!-- Log Toggle Button -->
-        <div class="log-toggle-btn fade-in" style="animation-delay: 0.6s" id="logToggleBtn">
+        <div class="log-toggle-btn fade-in" style="animation-delay: 0.7s" id="logToggleBtn">
             📋 Show Connection Log
         </div>
 
@@ -493,10 +574,10 @@
         </div>
 
         <!-- Info Section -->
-        <div class="welcome-section fade-in" style="animation-delay: 0.7s; text-align: center;">
+        <div class="welcome-section fade-in" style="animation-delay: 0.8s; text-align: center;">
             <div class="location">MQTT + RainMaker Integrated System</div>
             <div style="font-size: 12px; opacity: 0.6; margin-top: 8px;">
-                Control your devices through both MQTT and RainMaker
+                Control 10 devices through both MQTT and RainMaker
             </div>
         </div>
     </div>
@@ -514,13 +595,14 @@
             topics: {
                 control: 'esp32/relay/control',
                 status: 'esp32/relay/status',
-                state: 'esp32/relay/state'
+                state: 'esp32/relay/state',
+                all_states: 'esp32/relay/all_states'
             }
         };
 
         let mqttClient = null;
         let isConnected = false;
-        const numRelays = 4;
+        const numRelays = 10;  // Updated to 10
         let relayStates = Array(numRelays).fill(false);
         let isLogVisible = false;
         let isProcessing = false;
@@ -539,26 +621,25 @@
         const logToggleBtn = document.getElementById('logToggleBtn');
         const notification = document.getElementById('notification');
 
-        // إلغاء إشعارات: تحويل الدالة إلى لا شيء (no-op)
+        // Disable notifications
         function showNotification(/*message, duration = 3000*/) {
-            // intentionally empty to disable notifications per user request
             return;
         }
 
-        // إضافة رسالة للـ log
+        // Add log message
         function addLog(message) {
             const timestamp = new Date().toLocaleTimeString();
             messageLog.innerHTML = `[${timestamp}] ${message}<br>` + messageLog.innerHTML;
             console.log(message);
             
-            // تقليل حجم الـ log إذا كان كبيراً
+            // Limit log size
             const lines = messageLog.innerHTML.split('<br>');
             if (lines.length > 30) {
                 messageLog.innerHTML = lines.slice(0, 20).join('<br>');
             }
         }
 
-        // تبديل عرض سجل الاتصال
+        // Toggle log visibility
         function toggleLogVisibility() {
             isLogVisible = !isLogVisible;
             if (isLogVisible) {
@@ -570,7 +651,7 @@
             }
         }
 
-        // تحديث حالة الاتصال
+        // Update connection status
         function updateConnectionStatus(connected, message = '') {
             isConnected = connected;
             
@@ -584,7 +665,7 @@
                 allOnBtn.style.opacity = '1';
                 allOffBtn.style.opacity = '1';
                 
-                // إرسال طلب للحالة الحالية
+                // Request current status
                 setTimeout(() => {
                     sendCommand('STATUS_REQUEST');
                     addLog('Requested current status from ESP32');
@@ -601,12 +682,11 @@
             }
         }
 
-        // تحديث حالة الريلاي
+        // Update relay status
         function updateRelayStatus(relayNumber, status, fromServer = true) {
-            // إذا كان التحديث قادماً من السيرفر وكان هناك تحديث معلق، تجاهله (تم تأكيده)
+            // Remove from pending if confirmed
             if (fromServer && pendingUpdates.has(relayNumber)) {
                 pendingUpdates.delete(relayNumber);
-                // حتى لو تم التأكيد، نحتاج لتحديث العرض وفق الحالة المرسلة
             }
             
             const checkbox = document.getElementById(`relay${relayNumber}`);
@@ -615,7 +695,6 @@
             
             if (checkbox && statusElement && card) {
                 const isOn = status === 'ON';
-                // تحديث checkbox بدون إطلاق حدث change إضافي
                 if (checkbox.checked !== isOn) {
                     checkbox.checked = isOn;
                 }
@@ -632,11 +711,11 @@
             }
         }
 
-        // معالجة رسالة الحالة من موضوع الحالة الحية
+        // Handle state message
         function handleStateMessage(message) {
             addLog(`State update: ${message}`);
             
-            // معالجة حالة ALL
+            // Handle ALL commands
             if (message === 'ALL_ON') {
                 for (let i = 1; i <= numRelays; i++) {
                     updateRelayStatus(i, 'ON', true);
@@ -655,7 +734,7 @@
                 return;
             }
             
-            // معالجة تحديث جميع الحالات مرة واحدة
+            // Handle batch update ALL:1_ON,2_OFF,3_ON...
             if (message.startsWith('ALL:')) {
                 const statesStr = message.substring(4);
                 const states = statesStr.split(',');
@@ -676,7 +755,26 @@
                 return;
             }
             
-            // معالجة الحالات الفردية
+            // Handle JSON format
+            try {
+                const jsonData = JSON.parse(message);
+                if (jsonData.type === 'all_states' || jsonData.type === 'full_status') {
+                    for (let i = 1; i <= numRelays; i++) {
+                        const lightName = 'light' + i;
+                        if (jsonData[lightName] !== undefined) {
+                            updateRelayStatus(i, jsonData[lightName] ? 'ON' : 'OFF', true);
+                            pendingUpdates.delete(i);
+                        }
+                    }
+                    isProcessing = false;
+                    removeProcessingClasses();
+                    return;
+                }
+            } catch (e) {
+                // Not JSON, continue with other formats
+            }
+            
+            // Handle single relay updates (format: "1_ON" or "1_OFF")
             const parts = message.split('_');
             if (parts.length === 2) {
                 const relayNum = parseInt(parts[0]);
@@ -685,7 +783,6 @@
                     updateRelayStatus(relayNum, state, true);
                     pendingUpdates.delete(relayNum);
                     
-                    // إزالة حالة المعالجة بعد تأخير قصير
                     setTimeout(() => {
                         const card = document.getElementById(`relayCard${relayNum}`);
                         if (card) {
@@ -697,7 +794,7 @@
             }
         }
 
-        // إزالة فئات المعالجة من جميع الأزرار
+        // Remove processing classes
         function removeProcessingClasses() {
             allOnBtn.classList.remove('processing');
             allOffBtn.classList.remove('processing');
@@ -709,11 +806,10 @@
             }
         }
 
-        // إرسال أمر للريلاي
+        // Send command to relay
         function sendCommand(command) {
             if (!isConnected || !mqttClient) {
                 addLog('Error: Not connected to MQTT broker');
-                // notifications disabled
                 return false;
             }
 
@@ -723,22 +819,18 @@
                 return true;
             } catch (error) {
                 addLog(`Error sending command: ${error}`);
-                // notifications disabled
                 return false;
             }
         }
 
-        // تبديل حالة الريلاي (مصدر المستخدم)
+        // Toggle relay
         function toggleRelay(relayNumber) {
-            // تحقق من المعالجة المتزامنة
             if (isProcessing) {
-                // notifications disabled
                 return;
             }
             
             if (!isConnected || !mqttClient) {
                 addLog('Error: Not connected to MQTT broker');
-                // notifications disabled
                 return;
             }
             
@@ -746,25 +838,19 @@
             const card = document.getElementById(`relayCard${relayNumber}`);
             if (!checkbox || !card) return;
 
-            // الحالة المطلوبة تأتي من حالة الـ checkbox الحالية (لأن المستخدم ضغط عليها أو البطاقة ضغطت عليها)
             const desiredState = checkbox.checked;
             const desiredStateStr = desiredState ? 'ON' : 'OFF';
             const previousState = relayStates[relayNumber - 1];
 
-            // تحديث واجهة المستخدم فوراً (من مصدر المستخدم)
+            // Update UI immediately
             updateRelayStatus(relayNumber, desiredStateStr, false);
 
-            // وضع علامة أن هذا التحديث قيد المعالجة
             pendingUpdates.set(relayNumber, desiredState);
-            
-            // إضافة فئة التحميل
             card.classList.add('processing');
             isProcessing = true;
 
-            // إرسال الأمر
             const success = sendCommand(`${relayNumber}_${desiredStateStr}`);
 
-            // إذا فشل الإرسال، نرجع الحالة
             if (!success) {
                 setTimeout(() => {
                     updateRelayStatus(relayNumber, previousState ? 'ON' : 'OFF', false);
@@ -775,18 +861,16 @@
                 return;
             }
             
-            // إزالة فئة المعالجة بعد تأخير قصير (لكن تبقى حالة revert إذا لا يوجد تأكيد)
             setTimeout(() => {
                 card.classList.remove('processing');
                 isProcessing = false;
             }, 500);
             
-            // إذا لم نستلم تأكيداً خلال 3 ثوان، نعيد الحالة
+            // Timeout for confirmation
             setTimeout(() => {
                 if (pendingUpdates.has(relayNumber)) {
                     addLog(`Warning: No confirmation for relay ${relayNumber}, reverting...`);
                     updateRelayStatus(relayNumber, previousState ? 'ON' : 'OFF', false);
-                    // notifications disabled
                     pendingUpdates.delete(relayNumber);
                     card.classList.remove('processing');
                     isProcessing = false;
@@ -794,22 +878,20 @@
             }, 3000);
         }
 
-        // التحكم في جميع الريلايات
+        // Control all relays
         function controlAllRelays(state) {
             if (isProcessing) {
-                // notifications disabled
                 return;
             }
             
             if (!isConnected || !mqttClient) {
                 addLog('Error: Not connected to MQTT broker');
-                // notifications disabled
                 return;
             }
             
             isProcessing = true;
             
-            // تحديث جميع الواجهات فوراً
+            // Update all UI immediately
             for (let i = 1; i <= numRelays; i++) {
                 updateRelayStatus(i, state ? 'ON' : 'OFF', false);
                 pendingUpdates.set(i, state);
@@ -819,7 +901,6 @@
                 }
             }
             
-            // إضافة فئة المعالجة للأزرار
             if (state) {
                 allOnBtn.classList.add('processing');
             } else {
@@ -828,7 +909,6 @@
             
             const success = sendCommand(state ? 'ALL_ON' : 'ALL_OFF');
             
-            // إذا فشل الإرسال، نرجع جميع الحالات
             if (!success) {
                 setTimeout(() => {
                     for (let i = 1; i <= numRelays; i++) {
@@ -846,13 +926,12 @@
                 return;
             }
             
-            // إزالة فئات المعالجة بعد تأخير قصير
             setTimeout(() => {
                 removeProcessingClasses();
                 isProcessing = false;
             }, 500);
             
-            // إذا لم نستلم تأكيداً خلال 3 ثوان، نعيد جميع الحالات
+            // Timeout for confirmation
             setTimeout(() => {
                 let hasPending = false;
                 for (let i = 1; i <= numRelays; i++) {
@@ -869,14 +948,13 @@
                         updateRelayStatus(i, currentState ? 'ON' : 'OFF', false);
                         pendingUpdates.delete(i);
                     }
-                    // notifications disabled
                     removeProcessingClasses();
                     isProcessing = false;
                 }
             }, 3000);
         }
 
-        // محاولة إعادة الاتصال تلقائياً
+        // Auto-reconnect timer
         function startReconnectTimer() {
             if (reconnectInterval) clearInterval(reconnectInterval);
             
@@ -888,9 +966,8 @@
             }, 10000);
         }
 
-        // إعداد معالجات الأحداث
+        // Setup event listeners
         function setupEventListeners() {
-            // أحداث الأزرار العامة
             allOnBtn.addEventListener('click', () => {
                 controlAllRelays(true);
             });
@@ -899,39 +976,29 @@
                 controlAllRelays(false);
             });
 
-            // أحداث كروت الريلاي الفردية و input
             for (let i = 1; i <= numRelays; i++) {
                 const card = document.getElementById(`relayCard${i}`);
                 const checkbox = document.getElementById(`relay${i}`);
 
                 if (!card || !checkbox) continue;
 
-                // عند النقر على السويتش: امنع انتشار الحدث نحو البطاقة (حتى لا يتفاعل مرتين)
                 checkbox.addEventListener('click', (ev) => {
                     ev.stopPropagation();
                 });
 
-                // عند تغيير حالة السويتش (نقرة المستخدم) نفّذ نفس دالة التبديل
-                // *** تعديل هنا: نُحدّث الواجهة فوراً بنفس طريقة النقر على البطاقة ثم ننفّذ toggleRelay ***
                 checkbox.addEventListener('change', (ev) => {
                     ev.stopPropagation();
-                    // اعكس الواجهة فوراً كما لو أن البطاقة بالكامل قد تغيّرت
                     const desiredState = checkbox.checked;
                     updateRelayStatus(i, desiredState ? 'ON' : 'OFF', false);
-                    // ثم تنفيذ المنطق الأصلِي لإرسال الأمر ومعالجة التأكيد
                     toggleRelay(i);
                 });
 
-                // عند النقر على البطاقة، نفّذ نقرًا برمجياً على السويتش
                 card.addEventListener('click', (ev) => {
-                    // triggers checkbox click -> change handler -> toggleRelay
-                    // استدعاء برمجي مع تأخير طفيف لضمان مسار الحدث بشكل آمن
                     setTimeout(() => {
                         checkbox.click();
                     }, 0);
                 });
 
-                // دعم الوصول للوحة المفاتيح (Enter/Space)
                 card.addEventListener('keydown', (ev) => {
                     if (ev.key === 'Enter' || ev.key === ' ') {
                         ev.preventDefault();
@@ -942,26 +1009,22 @@
                 });
             }
 
-            // زر تبديل عرض السجل
             logToggleBtn.addEventListener('click', toggleLogVisibility);
 
-            // إعادة الاتصال يدوياً
             mqttDot.addEventListener('click', () => {
                 if (!isConnected) {
-                    // notifications disabled
                     connectMQTT();
                 }
             });
 
             relayDot.addEventListener('click', () => {
                 if (!isConnected) {
-                    // notifications disabled
                     connectMQTT();
                 }
             });
         }
 
-        // الاتصال بـ MQTT
+        // Connect to MQTT
         function connectMQTT() {
             try {
                 addLog('Connecting to MQTT broker (EMQX)...');
@@ -986,43 +1049,31 @@
                 mqttClient.on('connect', () => {
                     addLog('Successfully connected to EMQX MQTT broker');
                     updateConnectionStatus(true, 'Connected to EMQX');
-                    // notifications disabled
                     
-                    // الاشتراك في موضوع التحكم
+                    // Subscribe to topics
                     mqttClient.subscribe(mqttConfig.topics.control, (err) => {
-                        if (err) {
-                            addLog(`Control subscription error: ${err}`);
-                        } else {
-                            addLog(`Subscribed to: ${mqttConfig.topics.control}`);
-                        }
+                        if (!err) addLog(`Subscribed to: ${mqttConfig.topics.control}`);
                     });
                     
-                    // الاشتراك في موضوع الحالة
                     mqttClient.subscribe(mqttConfig.topics.status, (err) => {
-                        if (err) {
-                            addLog(`Status subscription error: ${err}`);
-                        } else {
-                            addLog(`Subscribed to: ${mqttConfig.topics.status}`);
-                        }
+                        if (!err) addLog(`Subscribed to: ${mqttConfig.topics.status}`);
                     });
                     
-                    // الاشتراك في موضوع الحالة الحية
                     mqttClient.subscribe(mqttConfig.topics.state, (err) => {
-                        if (err) {
-                            addLog(`State subscription error: ${err}`);
-                        } else {
-                            addLog(`Subscribed to: ${mqttConfig.topics.state}`);
-                        }
+                        if (!err) addLog(`Subscribed to: ${mqttConfig.topics.state}`);
+                    });
+                    
+                    mqttClient.subscribe(mqttConfig.topics.all_states, (err) => {
+                        if (!err) addLog(`Subscribed to: ${mqttConfig.topics.all_states}`);
                     });
                 });
 
                 mqttClient.on('message', (topic, message) => {
                     const payload = message.toString();
                     
-                    if (topic === mqttConfig.topics.state) {
-                        handleStateMessage(payload);
-                    } else if (topic === mqttConfig.topics.status) {
-                        addLog(`Status message: ${topic} = ${payload}`);
+                    if (topic === mqttConfig.topics.state || 
+                        topic === mqttConfig.topics.all_states || 
+                        topic === mqttConfig.topics.status) {
                         handleStateMessage(payload);
                     } else if (topic === mqttConfig.topics.control) {
                         addLog(`Control message: ${topic} = ${payload}`);
@@ -1032,7 +1083,6 @@
                 mqttClient.on('error', (error) => {
                     addLog(`Connection error: ${error}`);
                     updateConnectionStatus(false, 'Connection error');
-                    // notifications disabled
                 });
 
                 mqttClient.on('close', () => {
@@ -1053,24 +1103,19 @@
             } catch (error) {
                 addLog(`Connection setup error: ${error}`);
                 updateConnectionStatus(false, 'Connection failed');
-                // notifications disabled
-                
-                // بدء مؤقت إعادة الاتصال حتى في حالة الخطأ
                 startReconnectTimer();
             }
         }
 
-        // التهيئة عند تحميل الصفحة
+        // Initialize on page load
         window.addEventListener('load', () => {
-            addLog('Page loaded, initializing MQTT connection...');
+            addLog('Page loaded, initializing MQTT connection for 10 devices...');
             setupEventListeners();
             connectMQTT();
             startReconnectTimer();
-            
-            // لا إشعار الآن لأن showNotification معطلة
         });
 
-        // تنظيف عند إغلاق الصفحة
+        // Cleanup on page close
         window.addEventListener('beforeunload', () => {
             if (mqttClient) {
                 mqttClient.end();
@@ -1080,10 +1125,10 @@
             }
         });
 
-        // إضافة دعم اللمس المحسّن
+        // Touch support
         document.addEventListener('touchstart', function() {}, {passive: true});
         
-        // منع التمرير المزدوج للتكبير
+        // Prevent double-tap zoom
         document.addEventListener('dblclick', function(e) {
             e.preventDefault();
         }, { passive: false });
